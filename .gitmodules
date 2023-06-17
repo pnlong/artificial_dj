@@ -1,3 +1,9 @@
 [submodule "determine_key"]
 	path = determine_key
 	url = https://github.com/pnlong/determine_key
+[submodule "determine_tempo"]
+	path = determine_tempo
+	url = https://github.com/pnlong/determine_tempo
+[submodule "analyze_sections"]
+	path = analyze_sections
+	url = https://github.com/pnlong/analyze_sections
