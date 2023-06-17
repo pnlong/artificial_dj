@@ -1,0 +1,3 @@
+[submodule "determine_key"]
+	path = determine_key
+	url = https://github.com/pnlong/determine_key
