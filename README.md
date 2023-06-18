@@ -35,13 +35,23 @@ and more
 
 > Where - at what point in the music - do I transition into the next track?
 
-Most DJs use the same few mixing processes to transition between songs, all of which can be easily approached programmatically. The greater struggle is finding where to mix two songs. I will use machine learning to identify the different sections of a song, labelling the chorus, verse, buildup, outro -- the list goes on. See more info on this phase of the project in my GitHub repository [analyze_sections](https://github.com/pnlong/analyze_sections).
+Most DJs use the same few mixing processes to transition between songs, all of which can be easily approached programmatically. The greater struggle is finding where to mix two songs. I will use machine learning to identify the different sections of a song, labelling the chorus, verse, buildup, outro -- the list goes on. I need to label the sections of a bunch of songs in my personal music library that I will use as training data. This progress will be analogous to setting Hot Cues for anyone interested in the DJing terminology. See more info on this phase of the project in my GitHub repository [analyze_sections](https://github.com/pnlong/analyze_sections).
 
 
 ## Putting it All Together
 
+Given a playlist of songs, I will first determine their tempos and keys, which I will then use use to algorithmically determine the best order in which to play them. On its own, this data would be quite an impressive and valuable output. Next, I will identify the sections of all the songs. For each song but the last, I will determine at which section to begin the transition into the next song, speeding-up/slowing-down or changing the key of the current/next song accordingly. For now, I will use only a simple transition to mix between two songs: first replace the low end,next replace the high end. To be more precise, I will:
 
+1. Fade out song 1's low frequencies
+2. Fade in song 2's low frequencies
+3. Fade out song 1's high frequencies
+4. Fade in song 2's high frequencies
+
+The final output will be a single audio file that has mixed all the songs on the original inputted playlist together.
 
 
 ---
 
+If anything, I should learn a lot about music information retrieval and machine learning from this project. Perhaps I could one day develop my AI DJ into a product, though for now, I don't see it going that far. Let's hope this project goes well.
+
+Phillip Long
