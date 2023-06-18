@@ -12,12 +12,12 @@ Inspired by the new ideas from this conversation as well as my plan to conduct A
 
 ## Tempo
 
-DJs need to know the tempo of a song, typically measured in Beats Per Minute (BPM), if they want to incorporate the track into their mix. For instance, a fast song will not mix well with a slow song, but two fast songs can sound quite good together. I will use machine learning to take an audio file (.mp3) as input and output the song's BPM. See more info on this phase of the project in my GitHub repository [determine_tempo](https://github.com/pnlong/determine_tempo).
+DJs need to know the tempo of a song, typically measured in Beats Per Minute (BPM), if they want to incorporate the track into their mix. For instance, a fast song will not mix well with a slow song, but two fast songs can sound quite good together. I will use machine learning to take an audio file (.MP3) as input and output the song's BPM. See more info on this phase of the project in my GitHub repository [determine_tempo](https://github.com/pnlong/determine_tempo).
 
 
 ## Key
 
-Though perhaps not as important as tempo, musical key comes in at a close second. If DJs do not mix into songs with certain correct keys, to an untrained ear, their mix will sound cacauphonous. To a trained ear, it just sounds bad. I will use machine learning to take an audio file (.mp3) as input and output a song's musical key through two values:
+Though perhaps not as important as tempo, musical key comes in at a close second. If DJs do not mix into songs with certain correct keys, to an untrained ear, their mix will sound cacauphonous. To a trained ear, it just sounds bad. I will use machine learning to take an audio file (.MP3) as input and output a song's musical key through two values:
 
 1. The song's relative key / key signature (Ex. "A Major / f# minor")
 2. Whether the song is in a Major or minor key
