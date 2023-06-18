@@ -33,7 +33,7 @@ In the conversation with my dad, we discussed the fact that a lot of recent AI r
 
 and more
 
-> Where - at what point in the music - do I transition into the next track?
+> Where do I transition into the next track?
 
 Most DJs use the same few mixing processes to transition between songs, all of which can be easily approached programmatically. The greater struggle is finding where to mix two songs. I will use machine learning to identify the different sections of a song, labelling the chorus, verse, buildup, outro -- the list goes on. I need to label the sections of a bunch of songs in my personal music library that I will use as training data. This progress will be analogous to setting Hot Cues for anyone interested in the DJing terminology. See more info on this phase of the project in my GitHub repository [analyze_sections](https://github.com/pnlong/analyze_sections).
 
