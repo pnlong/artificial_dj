@@ -7,4 +7,13 @@
 
 
 # IMPORTS
-import librosa
+import pandas
+import requests
+from bs4 import BeautifulSoup
+
+
+# READ IN A PAGE WITH BEAUTIFUL SOUP
+# page = requests.get("https://realpython.github.io/fake-jobs/") # get Raw HTML
+# soup = BeautifulSoup(page.content, "html.parser") # creates a soup object
+
+

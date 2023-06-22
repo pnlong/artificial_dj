@@ -19,6 +19,7 @@ dependencies:
   - pip:
     - appdirs==1.4.4
     - audioread==3.0.0
+    - beautifulsoup4==4.12.2
     - certifi==2023.5.7
     - cffi==1.15.1
     - charset-normalizer==3.1.0
@@ -50,6 +51,7 @@ dependencies:
     - seaborn==0.12.2
     - six==1.16.0
     - soundfile==0.12.1
+    - soupsieve==2.4.1
     - soxr==0.3.5
     - threadpoolctl==3.1.0
     - typing-extensions==4.6.3
