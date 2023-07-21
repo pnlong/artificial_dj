@@ -57,3 +57,20 @@ For most songs, mixing with this formula generally creates a seamless mix. The f
 If anything, I should learn a lot about music information retrieval and machine learning from this project. Perhaps I could one day develop my AI DJ into a product, though for now, I don't see it going that far. Let's hope this project goes well.
 
 Phillip Long
+
+---
+
+## Software
+
+### *data_collection.py*
+
+Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs.
+
+```
+python ./data_collection.py music_library_filepath output_directory
+```
+
+- `music_library_filepath` is the filepath to a list of .MP3 files, all of which's metadata has been edited such that the ID3 tags include the name, artist, and genre of a song.
+- `output_directory` is the directory to which the program will output any data.
+
+*Make sure that prior to running this program, you have logged into Bing in your default web browser!*

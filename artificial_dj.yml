@@ -1,12 +1,15 @@
 name: /Users/philliplong/Desktop/Coding/artificial_dj/envs
 channels:
+  - conda-forge
   - defaults
 dependencies:
+  - beautifulsoup4=4.12.2=pyha770c72_0
+  - bs4=4.12.2=hd8ed1ab_0
   - bzip2=1.0.8=h1de35cc_0
-  - ca-certificates=2023.05.30=hecd8cb5_0
+  - ca-certificates=2023.5.7=h8857fd0_0
   - libffi=3.4.4=hecd8cb5_0
   - ncurses=6.4=hcec6c5f_0
-  - openssl=3.0.8=hca72f7f_0
+  - openssl=3.1.1=h8a1eda9_1
   - pip=23.1.2=py311hecd8cb5_0
   - python=3.11.3=hf27a42d_1
   - readline=8.2=hca72f7f_0
@@ -19,7 +22,6 @@ dependencies:
   - pip:
     - appdirs==1.4.4
     - audioread==3.0.0
-    - beautifulsoup4==4.12.2
     - certifi==2023.5.7
     - cffi==1.15.1
     - charset-normalizer==3.1.0
@@ -35,6 +37,7 @@ dependencies:
     - llvmlite==0.40.1rc1
     - matplotlib==3.7.1
     - msgpack==1.0.5
+    - mutagen==1.46.0
     - numba==0.57.0
     - numpy==1.24.3
     - packaging==23.1
@@ -45,7 +48,9 @@ dependencies:
     - pyparsing==3.0.9
     - python-dateutil==2.8.2
     - pytz==2023.3
+    - redis==4.6.0
     - requests==2.31.0
+    - requests-toolbelt==1.0.0
     - scikit-learn==1.2.2
     - scipy==1.10.1
     - seaborn==0.12.2

@@ -26,8 +26,8 @@ metadata = {
     "artist": ["",] * len(filepaths),
     "genre": ["",] * len(filepaths),
     "tempo": [None,] * len(filepaths),
-    "key": [int(-1),] * len(filepaths)
-    }
+    "key": ["",] * len(filepaths)
+}
 from mutagen import File as extract_metadata # for accessing mp3 metadata
 for i in range(len(filepaths)):
     file_metadata = extract_metadata(filepaths[i], easy = True)
@@ -42,36 +42,45 @@ del metadata
 
 # filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
 data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
+data = data.reset_index(drop = True)
 
 ######################################
 
 # GET KEY AND BPM DATA
 ######################################
 
-# authenticate Spotify API access
-import spotipy # for accessing Spotify's API
-from spotipy.oauth2 import SpotifyOAuth # request authenticator; create app @ https://developer.spotify.com/dashboard
-spotify = spotipy.Spotify( # construct spotify API instance
-    auth_manager = SpotifyOAuth( # authenticate request
-        client_id = "3ba64c24fa0141cf8fe99ccae2b77ad1", # https://developer.spotify.com/dashboard/3ba64c24fa0141cf8fe99ccae2b77ad1/settings
-        client_secret = "ce33aa36672d4d5da585d682102649c2",
-        redirect_uri = "http://localhost:8080"
-    )
-)
+# imports
+import bs4, requests
+from urllib.parse import quote_plus
+from time import sleep as wait
+
+for i in range(len(data.index)):
+    # search bing, MAKE SURE USER IS SIGNED IN
+    search_query = f"{data.at[i, 'artist']} {data.at[i, 'title']} site:musicstax.com" # determine search query
+    search_results_soup = bs4.BeautifulSoup(requests.get("https://www.bing.com/search?q=" + quote_plus(search_query)).text, "html.parser") # create beautiful soup object with the bing search results
+    search_results = [result.find("h2", recursive = False).find("a", recursive = False) for result in search_results_soup.find_all("li", class_ = "b_algo")] # gets the page link for each search result
+    search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
+    wait(3)
+
+    # if there are any relevant results, extract track data from musicstax.com
+    if len(search_results) > 0: # if there are any relevant results
+        soup = bs4.BeautifulSoup(requests.get(search_results[0].get("href")).text, "html.parser") # create beautiful soup object from the top bing result
+        track_info = [song_fact.find("div", class_ = "song-fact-container-stat", recursive = False).text.strip() for song_fact in soup.find_all("div", class_ = "song-fact-container")] # extract song information (length, tempo, key, loudness)
+        data.at[i, "key"] = int(track_info[1])
+        data.at[i, "tempo"] = track_info[2]
+        wait(3)
+
 
 # get data from Spotify
-from time import sleep as wait
-for i in range(len(data.index)):
-    results = spotify.search(q = f"{data.at[i, 'artist']} {data.at[i, 'title']}".replace(" ", "%20"), # search query
-                             type = ["track"],
-                             limit = 1 # how many results to show
-                             )["tracks"]["items"] # will put the top results in a list of dictionaries
-    if len(results) > 0: # if there is a result
-        track_info = spotify.audio_features(tracks = [results[0]["id"]])[0] # get Spotify ID of top result (0th index in results)
-        data.at[i, "key"] = track_info["key"]
-        data.at[i, "tempo"] = float(track_info["tempo"])
-
-    wait(5) # to avoid making too many API calls at once
+#from time import sleep as wait
+#for i in range(len(data.index)):
+#    search_query = f"{data.at[i, 'artist']} {data.at[i, 'title']}".replace(" ", "%20")
+#    results = spotify.search(q = search_query, type = ["track"], limit = 1)["tracks"]["items"] # will put the top results in a list of dictionaries
+#    if len(results) > 0: # if there is a result
+#        track_info = spotify.audio_features(tracks = [results[0]["id"]])[0] # get Spotify ID of top result (0th index in results)
+#        data.at[i, "key"] = int(track_info["key"])
+#        data.at[i, "tempo"] = float(track_info["tempo"])
+#    wait(5) # to avoid making too many API calls at once
 
 ######################################
 
@@ -79,10 +88,14 @@ for i in range(len(data.index)):
 ######################################
 
 # filter data
-data = data[data["key"] != -1]
+data = data[(data["key"] != -1) & (data["tempo"] > 0.0)]
+
+# reorder columns
+data = data[["title", "artist", "genre", "path", "tempo", "key"]]
+data = data.reset_index(drop = True)
 
 # output data
 from os.path import join
-data.to_csv(join(sys.argv[2], "tempo_key_data.tsv"), sep = "\t")
+data.to_csv(join(sys.argv[2], "tempo_key_data.tsv"), sep = "\t", header = True, index = False)
 
 ######################################
