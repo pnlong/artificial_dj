@@ -5,10 +5,10 @@
 # Collects audio data (.mp3 files) that will be used to train neural networks that determine the
 # tempo, key, and sections of a given song.
 
-# python ./data_collection.py music_library_filepath output_directory
+# python ./data_collection.py music_library_filepath output_directory chrome_driver_path
 
 import sys
-# sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj")
+# sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj", "/Users/philliplong/Desktop/Coding/chromedriver")
 
 
 # GET LIST OF SONGS, EXTRACT METADATA
@@ -29,7 +29,9 @@ metadata = {
     "key": ["",] * len(filepaths)
 }
 from mutagen import File as extract_metadata # for accessing mp3 metadata
-for i in range(len(filepaths)):
+from tqdm import tqdm # for progress bar
+print("")
+for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
     file_metadata = extract_metadata(filepaths[i], easy = True)
     for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
         metadata[attribute][i] = file_metadata[attribute][0]
@@ -50,25 +52,47 @@ data = data.reset_index(drop = True)
 ######################################
 
 # imports
-import bs4, requests
-from urllib.parse import quote_plus
+from selenium import webdriver
 from time import sleep as wait
+from random import uniform
 
-for i in range(len(data.index)):
-    # search bing, MAKE SURE USER IS SIGNED IN
+# a function that types in a given text into a given text entry element like an actual human (one letter at a time)
+def simulate_typing(text_entry_element, text):
+    for letter in text:
+        text_entry_element.send_keys(letter)
+        wait(uniform(0.05, 0.20))
+
+# set up chrome driver
+driver = webdriver.Chrome(executable_path = sys.argv[3])
+driver.maximize_window() # maximize the driver window
+driver.get("https://www.bing.com")
+wait(2)
+
+print("")
+for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 6.5):
+
+    # search bing
+    search_field = driver.find_element_by_name("q") # get the search textbox
+    search_field.clear() # delete any previous text from search box
     search_query = f"{data.at[i, 'artist']} {data.at[i, 'title']} site:musicstax.com" # determine search query
-    search_results_soup = bs4.BeautifulSoup(requests.get("https://www.bing.com/search?q=" + quote_plus(search_query)).text, "html.parser") # create beautiful soup object with the bing search results
-    search_results = [result.find("h2", recursive = False).find("a", recursive = False) for result in search_results_soup.find_all("li", class_ = "b_algo")] # gets the page link for each search result
+    simulate_typing(text_entry_element = search_field, text = search_query)
+    search_field.submit() # submit search query
+
+    # find relevant pages
+    search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]") # gets the list item for each search result
+    search_results = [result.find_element("xpath", ".//h2/a") for result in search_results] # gets the page link
     search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
-    wait(3)
+    wait(2.5)
 
     # if there are any relevant results, extract track data from musicstax.com
     if len(search_results) > 0: # if there are any relevant results
-        soup = bs4.BeautifulSoup(requests.get(search_results[0].get("href")).text, "html.parser") # create beautiful soup object from the top bing result
-        track_info = [song_fact.find("div", class_ = "song-fact-container-stat", recursive = False).text.strip() for song_fact in soup.find_all("div", class_ = "song-fact-container")] # extract song information (length, tempo, key, loudness)
-        data.at[i, "key"] = int(track_info[1])
-        data.at[i, "tempo"] = track_info[2]
-        wait(3)
+        search_results[0].click() # click on the most relevant (top) link
+        wait(2)
+        track_info = driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']") # extract song information (length, tempo, key, loudness)
+        data.at[i, "tempo"] = float(track_info[1].text.strip()) # set the tempo value
+        data.at[i, "key"] = track_info[2].text.strip() # set the key value
+        wait(1)
+        driver.back() # back to bing
 
 
 # get data from Spotify
@@ -96,6 +120,8 @@ data = data.reset_index(drop = True)
 
 # output data
 from os.path import join
-data.to_csv(join(sys.argv[2], "tempo_key_data.tsv"), sep = "\t", header = True, index = False)
+output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
+print(f"\nWriting output to {output_filepath}.")
+data.to_csv(output_filepath, sep = "\t", header = True, index = False)
 
 ######################################

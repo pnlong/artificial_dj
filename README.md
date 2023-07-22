@@ -71,10 +71,9 @@ Phillip Long
 Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs.
 
 ```
-python ./data_collection.py music_library_filepath output_directory
+python ./data_collection.py music_library_filepath output_directory chrome_driver_path
 ```
 
 - `music_library_filepath` is the filepath to a list of .MP3 files, all of which's metadata has been edited such that the ID3 tags include the name, artist, and genre of a song.
 - `output_directory` is the directory to which the program will output any data.
-
-*Make sure that prior to running this program, you have logged into Bing in your default web browser!*
+- `chrome_driver_path` is the filepath to Selenium Chrome Web Driver. The Chrome Web Driver can be downloaded at (https://chromedriver.chromium.org/downloads). **Note that Chrome Driver version must match the version of Chrome installed on the computer**.
