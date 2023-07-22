@@ -3,6 +3,10 @@ Uses artificial intelligence to mix together songs from an inputted playlist.
 
 ---
 
+Note the Conda environment `artificial_dj.yml`.
+
+---
+
 ## Background
 
 A short background on me: as of June 2023 (when I started this project), I will be going to college in the fall at the University of California, San Diego (UCSD). Once I arrive, one of my goals is to become a fraternity DJ. With four months of experience under my belt, I have realized that the significant majority of DJs never progress beyond a few certain core skills (on which I will later elaborate), and certainly for the purposes of frat parties, a DJ needs only to be lower-intermediate -- **at best**. For a while, I had been wondering if I could use machine learning to create an Artificial-Intelligence (AI) DJ. Discussing this with my dad over lunch during our vacation in Toronto, he actually suggested the idea independently, and we went into depth on the topic.
