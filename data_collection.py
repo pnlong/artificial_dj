@@ -73,9 +73,10 @@ driver.get("https://www.bing.com")
 wait(2)
 
 print("")
-for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 3):
+for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 6):
 
     # search bing
+    wait(3)
     search_field = driver.find_element_by_name("q") # get the search textbox
     driver.execute_script("return arguments[0].scrollIntoView(true);", search_field) # scroll up to search box
     search_field.clear() # delete any previous text from search box
