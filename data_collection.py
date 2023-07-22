@@ -140,7 +140,10 @@ data = data[["title", "artist", "genre", "path", "tempo", "key"]]
 data = data.reset_index(drop = True)
 
 # output data
-from os.path import join
+from os.path import join, exists
+from os import makedirs
+if not exists(sys.argv[2]): # create output directory if it is not yet created
+    makedirs(sys.argv[2])
 output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
 print(f"\nWriting output to {output_filepath}.")
 data.to_csv(output_filepath, sep = "\t", header = True, index = False)
