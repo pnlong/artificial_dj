@@ -73,7 +73,7 @@ driver.get("https://www.bing.com")
 wait(2)
 
 print("")
-for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 6):
+for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 8):
 
     # search bing
     wait(3)
@@ -86,10 +86,11 @@ for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", 
     del search_field, search_query
 
     # find relevant pages
+    wait(2)
     search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]") # gets the list item for each search result
     search_results = [result.find_element("xpath", ".//h2/a") for result in search_results] # gets the page link
     search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
-    wait(2.5)
+    wait(2)
 
     # if there are any relevant results, extract track data from musicstax.com
     if len(search_results) > 0: # if there are any relevant results
@@ -112,7 +113,8 @@ for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", 
             data.at[i, "key"] = track_info[2] # set the key value
             del track_info
             wait(1)
-            driver.back() # back to bing
+        
+        driver.back() # back to bing
 
 # quit webdriver
 driver.quit()
