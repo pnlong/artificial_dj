@@ -9,6 +9,7 @@
 
 import sys
 import pandas as pd
+from tqdm import tqdm # for progress bar
 # sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj/data", "/Users/philliplong/Desktop/Coding/chromedriver")
 
 
@@ -37,7 +38,6 @@ if not exists(output_filepath):
         "path": filepaths
     }
     from mutagen import File as extract_metadata # for accessing mp3 metadata
-    from tqdm import tqdm # for progress bar
     print("")
     for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
         file_metadata = extract_metadata(filepaths[i], easy = True)
