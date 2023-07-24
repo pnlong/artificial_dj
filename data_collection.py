@@ -42,7 +42,7 @@ if not exists(output_filepath):
     for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
         file_metadata = extract_metadata(filepaths[i], easy = True)
         for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
-            metadata[attribute][i] = file_metadata[attribute][0]
+            metadata[attribute][i] = file_metadata[attribute][0].replace("\n", " ").strip()
     metadata["tempo"] = [0.0,] * len(filepaths) # add tempo column
     metadata["key"] = ["",] * len(filepaths) # add key column
 
