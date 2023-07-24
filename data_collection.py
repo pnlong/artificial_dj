@@ -8,43 +8,57 @@
 # python ./data_collection.py music_library_filepath output_directory chrome_driver_path
 
 import sys
-# sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj", "/Users/philliplong/Desktop/Coding/chromedriver")
+import pandas as pd
+# sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj/data", "/Users/philliplong/Desktop/Coding/chromedriver")
 
 
 # GET LIST OF SONGS, EXTRACT METADATA
 ######################################
 
-# get filepaths of mp3s in music library
-from os.path import abspath, isfile # for getting the absolute filepath
-from glob import iglob # recursively access all files in main music library
-filepaths = tuple(filepath for filepath in iglob(abspath(sys.argv[1]) + '**/**', recursive = True) if filepath.endswith("mp3") and isfile(filepath))
+# create filepath for dataframe
+from os.path import join, exists
+from os import makedirs
+if not exists(sys.argv[2]): # create output directory if it is not yet created
+    makedirs(sys.argv[2])
+output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
 
-# get metadata from previously accessed filepaths
-metadata = {
-    "path": filepaths,
-    "title": ["",] * len(filepaths),
-    "artist": ["",] * len(filepaths),
-    "genre": ["",] * len(filepaths),
-    "tempo": [None,] * len(filepaths),
-    "key": ["",] * len(filepaths)
-}
-from mutagen import File as extract_metadata # for accessing mp3 metadata
-from tqdm import tqdm # for progress bar
-print("")
-for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
-    file_metadata = extract_metadata(filepaths[i], easy = True)
-    for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
-        metadata[attribute][i] = file_metadata[attribute][0]
-metadata["tempo"] = list(float(tempo) if tempo else 0.0 for tempo in metadata["tempo"]) # convert bpm list to float
+if not exists(output_filepath):
 
-# convert metadata into a pandas dataframe
-import pandas as pd
-data = pd.DataFrame(metadata)
-del metadata
+    # get filepaths of mp3s in music library
+    from os.path import abspath, isfile # for getting the absolute filepath
+    from glob import iglob # recursively access all files in main music library
+    filepaths = tuple(filepath for filepath in iglob(abspath(sys.argv[1]) + '**/**', recursive = True) if filepath.endswith("mp3") and isfile(filepath))
 
-# filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
-data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
-data = data.reset_index(drop = True)
+    # get metadata from previously accessed filepaths
+    metadata = {
+        "title": ["",] * len(filepaths),
+        "artist": ["",] * len(filepaths),
+        "genre": ["",] * len(filepaths),
+        "path": filepaths
+    }
+    from mutagen import File as extract_metadata # for accessing mp3 metadata
+    from tqdm import tqdm # for progress bar
+    print("")
+    for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
+        file_metadata = extract_metadata(filepaths[i], easy = True)
+        for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
+            metadata[attribute][i] = file_metadata[attribute][0]
+    metadata["tempo"] = [0.0,] * len(filepaths) # add tempo column
+    metadata["key"] = ["",] * len(filepaths) # add key column
+
+    # convert metadata into a pandas dataframe
+    data = pd.DataFrame(metadata)
+    del metadata
+
+    # filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
+    data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
+    data = data.reset_index(drop = True) # reset indicies
+
+    # write basic dataframe
+    data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+
+else: # if the dataframe already exists
+    data = pd.read_csv(output_filepath, sep = "\t", header = 0, index_col = False, keep_default_na = False, na_values = "NA")
 
 ######################################
 
@@ -73,7 +87,7 @@ driver.get("https://www.bing.com")
 wait(2)
 
 print("")
-for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", mininterval = 8):
+for i in tqdm(data[(data["tempo"] == 0.0) & (data["key"] == "")].index, desc = "Scraping the web for music data", mininterval = 8): # iterate over rows that have not been 
 
     # search bing
     wait(3)
@@ -113,8 +127,19 @@ for i in tqdm(range(len(data.index)), desc = "Scraping the web for music data", 
             data.at[i, "key"] = track_info[2] # set the key value
             del track_info
             wait(1)
-        
+        else: # set the tempo and key values to NA
+            data.at[i, "tempo"] = None # set the tempo value
+            data.at[i, "key"] = None # set the key value
+
         driver.back() # back to bing
+    
+    # if there are no results
+    else:
+        data.at[i, "tempo"] = None # set the tempo value
+        data.at[i, "key"] = None # set the key value
+
+    # write current data to output
+    data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
 
 # quit webdriver
 driver.quit()
@@ -136,19 +161,11 @@ driver.quit()
 ######################################
 
 # filter data
-data = data[(data["key"] != -1) & (data["tempo"] > 0.0)]
+data = data[(~data["tempo"].isnull()) & (~data["key"].isnull())] # filter out empty rows where there are no tempo and key values
+data = data.reset_index(drop = True) # reorder columns
 
-# reorder columns
-data = data[["title", "artist", "genre", "path", "tempo", "key"]]
-data = data.reset_index(drop = True)
-
-# output data
-from os.path import join, exists
-from os import makedirs
-if not exists(sys.argv[2]): # create output directory if it is not yet created
-    makedirs(sys.argv[2])
-output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
+# final output data
 print(f"\nWriting output to {output_filepath}.")
-data.to_csv(output_filepath, sep = "\t", header = True, index = False)
+data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
 
 ######################################
