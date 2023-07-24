@@ -75,7 +75,7 @@ from re import sub
 def simulate_typing(text_entry_element, text):
     for letter in text:
         text_entry_element.send_keys(letter)
-        wait(uniform(0.05, 0.20))
+        wait(uniform(0.02, 0.05))
 
 # a function to simplify text for string comparison of song titles/artist
 simplify_text = lambda text: [word for word in sub("[^A-Za-z0-9 ]", "", text).lower().strip().split() if word not in ("feat", "ft", "featuring", "with", "and", "&", "remix", "mix", "edit", "the", "a")]
