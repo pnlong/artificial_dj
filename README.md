@@ -3,7 +3,11 @@ Uses artificial intelligence to mix together songs from an inputted playlist.
 
 ---
 
-Note the Conda environment `artificial_dj.yml`.
+Note the Conda environment `artificial_dj.yml`. Create the environment on your system with the following command:
+
+```
+conda env create --file artificial_dj.yml
+```
 
 ---
 
@@ -75,5 +79,5 @@ python ./data_collection.py music_library_filepath output_directory chrome_drive
 ```
 
 - `music_library_filepath` is the filepath to a list of .MP3 files, all of which's metadata has been edited such that the ID3 tags include the name, artist, and genre of a song.
-- `output_directory` is the directory to which the program will output any data.
+- `output_directory` is the directory to which the program will output any data. The program updates its output with every iteration such that if the program crashes, any previously scraped data will be written to the output file and when rerun, the program can pick up where it left off.
 - `chrome_driver_path` is the filepath to Selenium Chrome Web Driver. The Chrome Web Driver can be downloaded at (https://chromedriver.chromium.org/downloads). **Note that Chrome Driver version must match the version of Chrome installed on the computer**.
