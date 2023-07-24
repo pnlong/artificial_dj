@@ -101,8 +101,7 @@ for i in tqdm(data[(data["tempo"] == 0.0) & (data["key"] == "")].index, desc = "
 
     # find relevant pages
     wait(2)
-    search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]") # gets the list item for each search result
-    search_results = [result.find_element("xpath", ".//h2/a") for result in search_results] # gets the page link
+    search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]//h2/a") # gets the list item -> header -> page link for each search result
     search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
     wait(2)
 
