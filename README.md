@@ -72,7 +72,7 @@ Phillip Long
 
 ### *data_collection.py*
 
-Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs.
+Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs. In the event of a Selenium targetting error, the program will automatically restart where it failed, and can only be cancelled with *Ctrl + C*.
 
 ```
 python ./data_collection.py music_library_filepath output_directory chrome_driver_path

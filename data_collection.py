@@ -80,68 +80,87 @@ def simulate_typing(text_entry_element, text):
 # a function to simplify text for string comparison of song titles/artist
 simplify_text = lambda text: [word for word in sub("[^A-Za-z0-9 ]", "", text).lower().strip().split() if word not in ("feat", "ft", "featuring", "with", "and", "&", "remix", "mix", "edit", "the", "a")]
 
-# set up chrome driver
-driver = webdriver.Chrome(executable_path = sys.argv[3])
-driver.maximize_window() # maximize the driver window
-driver.get("https://www.bing.com")
-wait(2)
+while True: # Selenium has a tendency to suffer from targeting errors, so this while loop automatically restarts it
+    try: # try to complete everything
 
-print("")
-for i in tqdm(data[(data["tempo"] == 0.0) & (data["key"] == "")].index, desc = "Scraping the web for music data", mininterval = 8): # iterate over rows that have not been 
-
-    # search bing
-    wait(3)
-    search_field = driver.find_element_by_name("q") # get the search textbox
-    driver.execute_script("return arguments[0].scrollIntoView(true);", search_field) # scroll up to search box
-    search_field.clear() # delete any previous text from search box
-    search_query = f"{data.at[i, 'artist']} {data.at[i, 'title']} site:musicstax.com" # determine search query
-    simulate_typing(text_entry_element = search_field, text = search_query) # type in query
-    search_field.submit() # submit search query
-    del search_field, search_query
-
-    # find relevant pages
-    wait(2)
-    search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]//h2/a") # gets the list item -> header -> page link for each search result
-    search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
-    wait(2)
-
-    # if there are any relevant results, extract track data from musicstax.com
-    if len(search_results) > 0: # if there are any relevant results
-        driver.execute_script("return arguments[0].scrollIntoView(true);", search_results[0]) # scroll to most relevant link
-        search_results[0].click() # click on the most relevant (top) link
+        # set up chrome driver
+        driver = webdriver.Chrome(executable_path = sys.argv[3])
+        driver.maximize_window() # maximize the driver window
+        driver.get("https://www.bing.com")
         wait(2)
 
-        # check if song is the right song
-        title_web = simplify_text(text = driver.find_element("xpath", "//h1[@class='song-title']").text) # get the title from the web
-        artist_web = sum([simplify_text(text = artist.text) for artist in driver.find_elements("xpath", "//div[@class='song-artist']/a")], []) # flatten list of artists from the web
-        song_description_web = title_web + artist_web # create a list describing the song description found on the website
-        song_description_actual = simplify_text(text = data.at[i, "title"]) + simplify_text(text = data.at[i, "artist"]) # create a list describing the actual song from the dataset
-        actual_words_not_in_web_description = [word for word in song_description_actual if word not in song_description_web] # return the words from the actual song description that are not in the web song description
-        del artist_web, title_web, song_description_web, song_description_actual
+        print("")
+        for i in tqdm(data[(data["tempo"] == 0.0) & (data["key"] == "")].index, desc = "Scraping the web for music data", mininterval = 8): # iterate over rows that have not been 
 
-        # if it is the right song, extract song data
-        if len(actual_words_not_in_web_description) <= 3:
-            track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
-            data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
-            data.at[i, "key"] = track_info[2] # set the key value
-            del track_info
-            wait(1)
-        else: # set the tempo and key values to NA
-            data.at[i, "tempo"] = None # set the tempo value
-            data.at[i, "key"] = None # set the key value
+            # search bing
+            wait(3)
+            search_field = driver.find_element_by_name("q") # get the search textbox
+            driver.execute_script("return arguments[0].scrollIntoView(true);", search_field) # scroll up to search box
+            search_field.clear() # delete any previous text from search box
+            search_query = f"{data.at[i, 'artist']} {data.at[i, 'title']} site:musicstax.com" # determine search query
+            simulate_typing(text_entry_element = search_field, text = search_query) # type in query
+            search_field.submit() # submit search query
+            del search_field, search_query
 
-        driver.back() # back to bing
-    
-    # if there are no results
+            # find relevant pages
+            wait(2)
+            search_results = driver.find_elements("xpath", "//li[contains(@class, 'b_algo')]//h2/a") # gets the list item -> header -> page link for each search result
+            search_results = [result for result in search_results if "key, tempo of " in result.text.lower()] # filter out totally irrelevant search results
+            wait(2)
+
+            # if there are any relevant results, extract track data from musicstax.com
+            if len(search_results) > 0: # if there are any relevant results
+                driver.execute_script("return arguments[0].scrollIntoView(true);", search_results[0]) # scroll to most relevant link
+                search_results[0].click() # click on the most relevant (top) link
+                wait(2)
+
+                # check if song is the right song
+                title_web = simplify_text(text = driver.find_element("xpath", "//h1[@class='song-title']").text) # get the title from the web
+                artist_web = sum([simplify_text(text = artist.text) for artist in driver.find_elements("xpath", "//div[@class='song-artist']/a")], []) # flatten list of artists from the web
+                song_description_web = title_web + artist_web # create a list describing the song description found on the website
+                song_description_actual = simplify_text(text = data.at[i, "title"]) + simplify_text(text = data.at[i, "artist"]) # create a list describing the actual song from the dataset
+                actual_words_not_in_web_description = [word for word in song_description_actual if word not in song_description_web] # return the words from the actual song description that are not in the web song description
+                del artist_web, title_web, song_description_web, song_description_actual
+
+                # if it is the right song, extract song data
+                if len(actual_words_not_in_web_description) <= 3:
+                    track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
+                    data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
+                    data.at[i, "key"] = track_info[2] # set the key value
+                    del track_info
+                    wait(1)
+                else: # set the tempo and key values to NA
+                    data.at[i, "tempo"] = None # set the tempo value
+                    data.at[i, "key"] = None # set the key value
+
+                driver.back() # back to bing
+            
+            # if there are no results
+            else:
+                data.at[i, "tempo"] = None # set the tempo value
+                data.at[i, "key"] = None # set the key value
+
+            # write current data to output
+            data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+
+        # quit webdriver
+        driver.quit()
+
+    except: # if a page doesn't load right because of a target error
+
+        # quit webdriver
+        driver.quit()
+
+        print("")
+        print("Restarting program.")
+
+        wait(5) # give time for Ctrl + C
+
+        # restart iteration and try again
+
     else:
-        data.at[i, "tempo"] = None # set the tempo value
-        data.at[i, "key"] = None # set the key value
+        break # break out of loop when finished
 
-    # write current data to output
-    data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
-
-# quit webdriver
-driver.quit()
 
 # get data from Spotify
 #from time import sleep as wait
