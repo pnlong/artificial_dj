@@ -10,6 +10,7 @@
 import sys
 import pandas as pd
 from tqdm import tqdm # for progress bar
+from re import sub
 # sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj/data", "/Users/philliplong/Desktop/Coding/chromedriver")
 
 
@@ -34,6 +35,7 @@ if not exists(output_filepath):
     metadata = {
         "title": ["",] * len(filepaths),
         "artist": ["",] * len(filepaths),
+        "album": ["",] * len(filepaths),
         "genre": ["",] * len(filepaths),
         "path": filepaths
     }
@@ -46,12 +48,23 @@ if not exists(output_filepath):
     metadata["tempo"] = [0.0,] * len(filepaths) # add tempo column
     metadata["key"] = ["",] * len(filepaths) # add key column
 
+    # special case for songs with their tempo in the title
+    tempo_indicies = [i for i in range(len(metadata["title"])) if "bpm" in metadata["title"][i].lower()]
+    for i in tempo_indicies:
+        title_split = sub("[^A-Za-z0-9 ]", " ", metadata["title"][i]).lower().split()
+        metadata["tempo"][i] = float(title_split[title_split.index("bpm") - 1])
+        metadata["key"][i] = None
+        del title_split
+    del tempo_indicies
+
     # convert metadata into a pandas dataframe
     data = pd.DataFrame(metadata)
     del metadata
 
     # filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
     data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
+    data = data[data["album"].str.lower() != "remixes"] # filter out remixes
+    data = data[~data["title"].str.lower().str.contains("slowed|sped up|reverb")] # filter out songs that are slowed or sped up
     data = data.reset_index(drop = True) # reset indicies
 
     # write basic dataframe
@@ -69,7 +82,7 @@ else: # if the dataframe already exists
 from selenium import webdriver
 from time import sleep as wait
 from random import uniform
-from re import sub
+from unidecode import unidecode as remove_accents
 
 # a function that types in a given text into a given text entry element like an actual human (one letter at a time)
 def simulate_typing(text_entry_element, text):
@@ -78,7 +91,7 @@ def simulate_typing(text_entry_element, text):
         wait(uniform(0.02, 0.05))
 
 # a function to simplify text for string comparison of song titles/artist
-simplify_text = lambda text: [word for word in sub("[^A-Za-z0-9 ]", "", text).lower().strip().split() if word not in ("feat", "ft", "featuring", "with", "and", "&", "remix", "mix", "edit", "the", "a")]
+simplify_text = lambda text: [word for word in sub("[^A-Za-z0-9 ]", "", remove_accents(text)).lower().strip().split() if word not in ("feat", "ft", "featuring", "with", "and", "&", "remix", "mix", "edit", "the", "a")]
 
 while True: # Selenium has a tendency to suffer from targeting errors, so this while loop automatically restarts it
     try: # try to complete everything
@@ -119,11 +132,12 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
                 artist_web = sum([simplify_text(text = artist.text) for artist in driver.find_elements("xpath", "//div[@class='song-artist']/a")], []) # flatten list of artists from the web
                 song_description_web = title_web + artist_web # create a list describing the song description found on the website
                 song_description_actual = simplify_text(text = data.at[i, "title"]) + simplify_text(text = data.at[i, "artist"]) # create a list describing the actual song from the dataset
-                actual_words_not_in_web_description = [word for word in song_description_actual if word not in song_description_web] # return the words from the actual song description that are not in the web song description
-                del artist_web, title_web, song_description_web, song_description_actual
+                actual_words_in_web_description = [word for word in song_description_actual if word in song_description_web] # return the words from the actual song description that are in the web song description
+                is_probably_right_song = ((len(actual_words_in_web_description) / len(song_description_actual)) >= 0.7)
+                del artist_web, title_web, song_description_web, song_description_actual, actual_words_in_web_description
 
                 # if it is the right song, extract song data
-                if len(actual_words_not_in_web_description) <= 3:
+                if is_probably_right_song:
                     track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
                     data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
                     data.at[i, "key"] = track_info[2] # set the key value
@@ -178,7 +192,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
 ######################################
 
 # filter data
-data = data[(~data["tempo"].isnull()) & (~data["key"].isnull())] # filter out empty rows where there are no tempo and key values
+data = data[(~data["tempo"].isnull()) | (~data["key"].isnull())] # filter out empty rows that lack both tempo and key values
 data = data.reset_index(drop = True) # reorder columns
 
 # final output data

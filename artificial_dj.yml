@@ -5,7 +5,7 @@ dependencies:
   - brotlipy=0.7.0=py311h6c40b1e_1002
   - bzip2=1.0.8=h1de35cc_0
   - ca-certificates=2023.05.30=hecd8cb5_0
-  - certifi=2023.5.7=py311hecd8cb5_0
+  - certifi=2023.7.22=py311hecd8cb5_0
   - cffi=1.15.1=py311h6c40b1e_3
   - cryptography=39.0.1=py311hf6deb26_2
   - idna=3.4=py311hecd8cb5_0
@@ -23,6 +23,7 @@ dependencies:
   - sqlite=3.41.2=h6c40b1e_0
   - tk=8.6.12=h5d9f67b_0
   - tqdm=4.65.0=py311h85bffb1_0
+  - unidecode=1.2.0=pyhd3eb1b0_0
   - wheel=0.38.4=py311hecd8cb5_0
   - xz=5.4.2=h6c40b1e_0
   - zlib=1.2.13=h4dc903c_0
