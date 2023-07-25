@@ -151,8 +151,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
         # quit webdriver
         driver.quit()
 
-        print("")
-        print("Restarting program.")
+        print("\nRestarting program.\n")
 
         wait(5) # give time for Ctrl + C
 
