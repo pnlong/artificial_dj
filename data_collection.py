@@ -196,7 +196,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
 # data = data.reset_index(drop = True) # reorder columns
 
 # final output data
-print(f"\nWriting output to {output_filepath}.")
-data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+# print(f"\nWriting output to {output_filepath}.")
+# data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
 
 ######################################
