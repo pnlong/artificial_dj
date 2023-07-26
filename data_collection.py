@@ -192,8 +192,8 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
 ######################################
 
 # filter data
-data = data[(~data["tempo"].isnull()) | (~data["key"].isnull())] # filter out empty rows that lack both tempo and key values
-data = data.reset_index(drop = True) # reorder columns
+# data = data[(~data["tempo"].isnull()) | (~data["key"].isnull())] # filter out empty rows that lack both tempo and key values
+# data = data.reset_index(drop = True) # reorder columns
 
 # final output data
 print(f"\nWriting output to {output_filepath}.")
