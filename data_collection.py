@@ -127,27 +127,33 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
                 search_results[0].click() # click on the most relevant (top) link
                 wait(2)
 
-                # check if song is the right song
-                title_web = simplify_text(text = driver.find_element("xpath", "//h1[@class='song-title']").text) # get the title from the web
-                artist_web = sum([simplify_text(text = artist.text) for artist in driver.find_elements("xpath", "//div[@class='song-artist']/a")], []) # flatten list of artists from the web
-                song_description_web = title_web + artist_web # create a list describing the song description found on the website
-                song_description_actual = simplify_text(text = data.at[i, "title"]) + simplify_text(text = data.at[i, "artist"]) # create a list describing the actual song from the dataset
-                actual_words_in_web_description = [word for word in song_description_actual if word in song_description_web] # return the words from the actual song description that are in the web song description
-                is_probably_right_song = ((len(actual_words_in_web_description) / len(song_description_actual)) >= 0.7)
-                del artist_web, title_web, song_description_web, song_description_actual, actual_words_in_web_description
+                try: # will fail if 404 error on musicstax
+                    # check if song is the right song
+                    title_web = simplify_text(text = driver.find_element("xpath", "//h1[@class='song-title']").text) # get the title from the web
+                    artist_web = sum([simplify_text(text = artist.text) for artist in driver.find_elements("xpath", "//div[@class='song-artist']/a")], []) # flatten list of artists from the web
+                    song_description_web = title_web + artist_web # create a list describing the song description found on the website
+                    song_description_actual = simplify_text(text = data.at[i, "title"]) + simplify_text(text = data.at[i, "artist"]) # create a list describing the actual song from the dataset
+                    actual_words_in_web_description = [word for word in song_description_actual if word in song_description_web] # return the words from the actual song description that are in the web song description
+                    is_probably_right_song = ((len(actual_words_in_web_description) / len(song_description_actual)) >= 0.7)
+                    del artist_web, title_web, song_description_web, song_description_actual, actual_words_in_web_description
 
-                # if it is the right song, extract song data
-                if is_probably_right_song:
-                    track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
-                    data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
-                    data.at[i, "key"] = track_info[2] # set the key value
-                    del track_info
-                    wait(1)
-                else: # set the tempo and key values to NA
+                    # if it is the right song, extract song data
+                    if is_probably_right_song:
+                        track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
+                        data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
+                        data.at[i, "key"] = track_info[2] # set the key value
+                        del track_info
+                        wait(1)
+                    else: # set the tempo and key values to NA
+                        data.at[i, "tempo"] = None # set the tempo value
+                        data.at[i, "key"] = None # set the key value
+
+                    driver.back() # back to bing
+                
+                except: # in the event of failure set values as NA and return to Bing
                     data.at[i, "tempo"] = None # set the tempo value
                     data.at[i, "key"] = None # set the key value
-
-                driver.back() # back to bing
+                    driver.back() # back to bing
             
             # if there are no results
             else:
