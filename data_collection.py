@@ -145,20 +145,17 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
                         del track_info
                         wait(1)
                     else: # set the tempo and key values to NA
-                        data.at[i, "tempo"] = None # set the tempo value
-                        data.at[i, "key"] = None # set the key value
+                        data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
 
                     driver.back() # back to bing
                 
                 except: # in the event of failure set values as NA and return to Bing
-                    data.at[i, "tempo"] = None # set the tempo value
-                    data.at[i, "key"] = None # set the key value
+                    data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
                     driver.back() # back to bing
             
             # if there are no results
             else:
-                data.at[i, "tempo"] = None # set the tempo value
-                data.at[i, "key"] = None # set the key value
+                data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
 
             # write current data to output
             data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
