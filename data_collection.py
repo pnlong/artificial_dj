@@ -180,6 +180,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
     else:
         break # break out of loop when finished
 
+print("")
 
 # get data from Spotify
 #from time import sleep as wait
