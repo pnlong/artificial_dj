@@ -24,54 +24,54 @@ if not exists(sys.argv[2]): # create output directory if it is not yet created
     makedirs(sys.argv[2])
 output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
 
-if not exists(output_filepath):
 
-    # get filepaths of mp3s in music library
-    from os.path import abspath, isfile # for getting the absolute filepath
-    from glob import iglob # recursively access all files in main music library
-    filepaths = tuple(filepath for filepath in iglob(abspath(sys.argv[1]) + '**/**', recursive = True) if filepath.endswith("mp3") and isfile(filepath))
+# get filepaths of mp3s in music library
+from os.path import abspath, isfile # for getting the absolute filepath
+from glob import iglob # recursively access all files in main music library
+filepaths = tuple(filepath for filepath in iglob(abspath(sys.argv[1]) + '**/**', recursive = True) if filepath.endswith("mp3") and isfile(filepath))
 
-    # get metadata from previously accessed filepaths
-    metadata = {
-        "title": ["",] * len(filepaths),
-        "artist": ["",] * len(filepaths),
-        "album": ["",] * len(filepaths),
-        "genre": ["",] * len(filepaths),
-        "path": filepaths
-    }
-    from mutagen import File as extract_metadata # for accessing mp3 metadata
-    print("")
-    for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
-        file_metadata = extract_metadata(filepaths[i], easy = True)
-        for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
-            metadata[attribute][i] = file_metadata[attribute][0].replace("\n", " ").strip()
-    metadata["tempo"] = [0.0,] * len(filepaths) # add tempo column
-    metadata["key"] = ["",] * len(filepaths) # add key column
+# get metadata from previously accessed filepaths
+metadata = {
+    "title": ["",] * len(filepaths),
+    "artist": ["",] * len(filepaths),
+    "album": ["",] * len(filepaths),
+    "genre": ["",] * len(filepaths),
+    "path": filepaths
+}
+from mutagen import File as extract_metadata # for accessing mp3 metadata
+print("")
+for i in tqdm(range(len(filepaths)), desc = "Extracting metadata from MP3 files"):
+    file_metadata = extract_metadata(filepaths[i], easy = True)
+    for attribute in (key for key in metadata.keys() if key in file_metadata.keys()):
+        metadata[attribute][i] = file_metadata[attribute][0].replace("\n", " ").strip()
+metadata["tempo"] = [0.0,] * len(filepaths) # add tempo column
+metadata["key"] = ["",] * len(filepaths) # add key column
 
-    # special case for songs with their tempo in the title
-    tempo_indicies = [i for i in range(len(metadata["title"])) if "bpm" in metadata["title"][i].lower()]
-    for i in tempo_indicies:
-        title_split = sub("[^A-Za-z0-9 ]", " ", metadata["title"][i]).lower().split()
-        metadata["tempo"][i] = float(title_split[title_split.index("bpm") - 1])
-        metadata["key"][i] = None
-        del title_split
-    del tempo_indicies
+# special case for songs with their tempo in the title
+tempo_indicies = [i for i in range(len(metadata["title"])) if "bpm" in metadata["title"][i].lower()]
+for i in tempo_indicies:
+    title_split = sub("[^A-Za-z0-9 ]", " ", metadata["title"][i]).lower().split()
+    metadata["tempo"][i] = float(title_split[title_split.index("bpm") - 1])
+    metadata["key"][i] = None
+    del title_split
+del tempo_indicies
 
-    # convert metadata into a pandas dataframe
-    data = pd.DataFrame(metadata)
-    del metadata
+# convert metadata into a pandas dataframe
+data = pd.DataFrame(metadata)
+if exists(output_filepath):
+    original_data = pd.read_csv(output_filepath, sep = "\t", header = 0, index_col = False, keep_default_na = False, na_values = "NA")
+    data = pd.concat([original_data, data]).drop_duplicates(subset = "path").reset_index(drop = True) # the effect of this is that we append any new entries to the end of the dataframe
+    del original_data
+del metadata
 
-    # filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
-    data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
-    data = data[data["album"].str.lower() != "remixes"] # filter out remixes
-    data = data[~data["title"].str.lower().str.contains("slowed|sped up|reverb")] # filter out songs that are slowed or sped up
-    data = data.reset_index(drop = True) # reset indicies
+# filter out genres that in general have variable tempo, individual songs will be dealt with later (if Tunebat cannot find them)
+data = data[~data["genre"].isin(("Classical", "Jazz"))] # tilde means "NOT", so I am filtering out the mentioned genres
+data = data[data["album"].str.lower() != "remixes"] # filter out remixes
+data = data[~data["title"].str.lower().str.contains("slowed|sped up|reverb")] # filter out songs that are slowed or sped up
+data = data.reset_index(drop = True) # reset indicies
 
-    # write basic dataframe
-    data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
-
-else: # if the dataframe already exists
-    data = pd.read_csv(output_filepath, sep = "\t", header = 0, index_col = False, keep_default_na = False, na_values = "NA")
+# write basic dataframe
+data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
 
 ######################################
 

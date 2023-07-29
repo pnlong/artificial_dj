@@ -72,9 +72,7 @@ Phillip Long
 
 ### *data_collection.py*
 
-Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs. In the event of a Selenium targetting error, the program will automatically restart where it failed, and can only be cancelled with *Ctrl + C*.
-
-If you have already run this script on the bulk of your music library and your music library is updated, you will need to rename the original output file `tempo_key_data.tsv` to something new (ex. `tempo_key_data.2.tsv`) and then rerun the script on your new music library, perhaps writing a script beforehand that indicates already-processed songs. Once this process is complete, you will need to load both outputs (the original and the new) into your language of choice and append the new to the old, making sure to remove duplicate entries. As it currently exists, this program cannot handle an evolving music library. I plan to implement this in the future.
+Scrapes [Bing](https://www.bing.com) and [musicstax.com](https://musicstax.com/) for tempo and key data of songs. In the event of a Selenium targetting error, the program will automatically restart where it failed, and can only be cancelled with *Ctrl + C*. The program automatically checks for updates in the music library and adjusts accordingly.
 
 ```
 python ./data_collection.py music_library_filepath output_directory chrome_driver_path
