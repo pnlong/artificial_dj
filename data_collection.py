@@ -106,7 +106,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
         for i in tqdm(data[(data["tempo"] == 0.0) & (data["key"] == "")].index, desc = "Scraping the web for music data", mininterval = 8): # iterate over rows that have not been 
 
             # search bing
-            wait(3)
+            wait(5)
             search_field = driver.find_element_by_name("q") # get the search textbox
             driver.execute_script("return arguments[0].scrollIntoView(true);", search_field) # scroll up to search box
             search_field.clear() # delete any previous text from search box
