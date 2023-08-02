@@ -22,7 +22,7 @@ from os.path import join, exists
 from os import makedirs
 if not exists(sys.argv[2]): # create output directory if it is not yet created
     makedirs(sys.argv[2])
-output_filepath = join(sys.argv[2], "tempo_key_data.tsv")
+OUTPUT_FILEPATH = join(sys.argv[2], "tempo_key_data.tsv")
 
 
 # get filepaths of mp3s in music library
@@ -58,8 +58,8 @@ del tempo_indicies
 
 # convert metadata into a pandas dataframe
 data = pd.DataFrame(metadata)
-if exists(output_filepath):
-    original_data = pd.read_csv(output_filepath, sep = "\t", header = 0, index_col = False, keep_default_na = False, na_values = "NA")
+if exists(OUTPUT_FILEPATH):
+    original_data = pd.read_csv(OUTPUT_FILEPATH, sep = "\t", header = 0, index_col = False, keep_default_na = False, na_values = "NA")
     data = pd.concat([original_data, data]).drop_duplicates(subset = "path").reset_index(drop = True) # the effect of this is that we append any new entries to the end of the dataframe
     del original_data
 del metadata
@@ -71,7 +71,7 @@ data = data[~data["title"].str.lower().str.contains("slowed|sped up|reverb")] # 
 data = data.reset_index(drop = True) # reset indicies
 
 # write basic dataframe
-data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+data.to_csv(OUTPUT_FILEPATH, sep = "\t", header = True, index = False, na_rep = "NA")
 
 ######################################
 
@@ -158,7 +158,7 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
                 data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
 
             # write current data to output
-            data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+            data.to_csv(OUTPUT_FILEPATH, sep = "\t", header = True, index = False, na_rep = "NA")
 
         # quit webdriver
         driver.quit()
@@ -200,7 +200,7 @@ print("")
 # data = data.reset_index(drop = True) # reorder columns
 
 # final output data
-# print(f"\nWriting output to {output_filepath}.")
-# data.to_csv(output_filepath, sep = "\t", header = True, index = False, na_rep = "NA")
+# print(f"\nWriting output to {OUTPUT_FILEPATH}.")
+# data.to_csv(OUTPUT_FILEPATH, sep = "\t", header = True, index = False, na_rep = "NA")
 
 ######################################
