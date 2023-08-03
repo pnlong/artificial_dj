@@ -1,3 +1,5 @@
 .DS_Store
 envs
 commit_all.sh
+.cache
+data
