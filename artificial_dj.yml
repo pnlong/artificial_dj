@@ -1,4 +1,4 @@
-name: /Users/philliplong/Desktop/Coding/artificial_dj/envs
+name: artificial_dj
 channels:
   - defaults
 dependencies:

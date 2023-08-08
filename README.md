@@ -3,7 +3,7 @@ Uses artificial intelligence to mix together songs from an inputted playlist.
 
 ---
 
-Note the Conda environment `artificial_dj.yml`. Create the environment on your system with the following command:
+Note the Conda environment `artificial_dj.yml`. The way I did things, you need to manually alter the `artificial_dj.yml` file and edit the `name:` field, setting its value to your desired environment name. Then, you can create the environment on your system with the following command:
 
 ```
 conda env create --file artificial_dj.yml
