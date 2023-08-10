@@ -7,11 +7,14 @@
 
 # python ./data_collection.py music_library_filepath output_directory chrome_driver_path
 
+# IMPORTS
+######################################
 import sys
 import pandas as pd
 from tqdm import tqdm # for progress bar
 from re import sub
 # sys.argv = ("./data_collection.py", "/Volumes/Seagate/Music", "/Users/philliplong/Desktop/Coding/artificial_dj/data", "/Users/philliplong/Desktop/Coding/chromedriver")
+######################################
 
 
 # GET LIST OF SONGS, EXTRACT METADATA
@@ -75,6 +78,7 @@ data.to_csv(OUTPUT_FILEPATH, sep = "\t", header = True, index = False, na_rep = 
 
 ######################################
 
+
 # GET KEY AND BPM DATA
 ######################################
 
@@ -89,6 +93,40 @@ def simulate_typing(text_entry_element, text):
     for letter in text:
         text_entry_element.send_keys(letter)
         wait(uniform(0.02, 0.05))
+
+# sets key and tempo values to NA
+def set_unknown_tempo_key(i):
+    data.at[i, "tempo"] = None # set the tempo value
+    data.at[i, "key"] = None # set the key value
+
+# deals with enharmonic keys, ex. G# and Ab; sets flat keys to their sharp equivalent
+enharmonic_notes = {"Ab": "G#", "Bb": "A#", "Cb": "B", "Db": "C#", "Eb": "D#", "Fb": "E", "Gb": "F#"}
+def deal_with_enharmonic(key):
+    i = key.lower().index("m")
+
+    pitch = "".join(key[:i].strip().split())
+    pitch = pitch[0].upper() + pitch[1].lower()
+    if len(pitch) > 1: # if there is a sharp or flat
+        if ord(pitch[1]) in (115, 9839): # sharp
+            pitch = pitch[0] + "#"
+        elif ord(pitch[1]) in (102, 9837): # flat
+            pitch = pitch[0] + "b"
+        elif ord(pitch[1]) == 9838: # natural sign for some reason
+            pitch = pitch[0]
+        
+        if pitch[1] == "b": # change from flat to sharp; e.g. Ab to G#
+            pitch = enharmonic_notes[pitch]
+    
+    quality = key[i:].strip() # major or minor
+    if (quality.lower().startswith("ma")) or (quality[0] == "M"): # major
+        quality = "Maj"
+    elif (quality.lower().startswith("mi")) or (quality[0] == "m"): # minor
+        quality = "min"
+    else:
+        quality = None
+
+    key = None if quality is None else f"{pitch} {quality}"
+    return key
 
 # a function to simplify text for string comparison of song titles/artist
 simplify_text = lambda text: [word for word in sub("[^A-Za-z0-9 ]", "", remove_accents(text)).lower().strip().split() if word not in ("feat", "ft", "featuring", "with", "and", "&", "remix", "mix", "edit", "the", "a")]
@@ -141,21 +179,21 @@ while True: # Selenium has a tendency to suffer from targeting errors, so this w
                     if is_probably_right_song:
                         track_info = [song_fact.text.strip() for song_fact in driver.find_elements("xpath", "//div[@class='song-fact-container']/div[@class='song-fact-container-stat']")] # extract song information (length, tempo, key, loudness)
                         data.at[i, "tempo"] = float(track_info[1]) # set the tempo value
-                        data.at[i, "key"] = track_info[2] # set the key value
+                        data.at[i, "key"] = deal_with_enharmonic(key = track_info[2]) # set the key value
                         del track_info
                         wait(1)
                     else: # set the tempo and key values to NA
-                        data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
+                        set_unknown_tempo_key(i)
 
                     driver.back() # back to bing
                 
                 except: # in the event of failure set values as NA and return to Bing
-                    data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
+                    set_unknown_tempo_key(i)
                     driver.back() # back to bing
             
             # if there are no results
             else:
-                data.at[i, "tempo"], data.at[i, "key"] = None, None # set the tempo and key values
+                set_unknown_tempo_key(i)
 
             # write current data to output
             data.to_csv(OUTPUT_FILEPATH, sep = "\t", header = True, index = False, na_rep = "NA")
@@ -191,6 +229,7 @@ print("")
 #    wait(5) # to avoid making too many API calls at once
 
 ######################################
+
 
 # OUTPUT DATA TO TSV
 ######################################
