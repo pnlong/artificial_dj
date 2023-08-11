@@ -109,13 +109,10 @@ def deal_with_enharmonic(key):
     if len(pitch) > 1: # if there is a sharp or flat
         if ord(pitch[1]) in (115, 9839): # sharp
             pitch = pitch[0] + "#"
-        elif ord(pitch[1]) in (102, 9837): # flat
-            pitch = pitch[0] + "b"
+        elif ord(pitch[1]) in (98, 102, 9837): # flat
+            pitch = enharmonic_notes[pitch[0] + "b"] # change from flat to sharp; e.g. Ab to G#
         elif ord(pitch[1]) == 9838: # natural sign for some reason
-            pitch = pitch[0]
-        
-        if pitch[1] == "b": # change from flat to sharp; e.g. Ab to G#
-            pitch = enharmonic_notes[pitch]
+            pitch = pitch[0]            
     
     quality = key[i:].strip() # major or minor
     if (quality.lower().startswith("ma")) or (quality[0] == "M"): # major
@@ -125,7 +122,7 @@ def deal_with_enharmonic(key):
     else:
         quality = None
 
-    key = None if quality is None else f"{pitch} {quality}"
+    key = f"{pitch} {quality}" if quality is not None else None
     return key
 
 # a function to simplify text for string comparison of song titles/artist
